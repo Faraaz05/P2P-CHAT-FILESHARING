@@ -1,0 +1,149 @@
+{% extends 'core/base.html' %}
+{% block content %}
+  <style>
+    body {
+      {% comment %} background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); {% endcomment %}
+    }
+
+    #Intro-section {
+      min-height: 80vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .intro-card {
+      backdrop-filter: blur(12px);
+      background-color: rgba(255, 255, 255, 0.85);
+      border-radius: 1.5rem;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+      max-width: 42rem;
+      width: 100%;
+      padding: 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .intro-card::before {
+      content: "";
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 180px;
+      height: 180px;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      border-radius: 50%;
+      z-index: 0;
+      opacity: 0.15;
+    }
+
+    .intro-card h3 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #222;
+      z-index: 1;
+      position: relative;
+    }
+
+    .intro-card p {
+      font-size: 1.05rem;
+      color: #555;
+      line-height: 1.6;
+      z-index: 1;
+      position: relative;
+    }
+
+    .intro-card .btn {
+      padding: 0.6rem 1.4rem;
+      font-weight: 600;
+      border-radius: 1.2rem;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      z-index: 1;
+      position: relative;
+    }
+
+    .intro-card .btn-warning {
+      background: linear-gradient(135deg, #fcb045, #fd1d1d);
+      border: none;
+      color: white;
+    }
+
+    .intro-card .btn-danger {
+      background: linear-gradient(135deg, #ee0979, #ff6a00);
+      border: none;
+      color: white;
+    }
+
+    .intro-card .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .avatar-placeholder {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #eee;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: #666;
+      margin-bottom: 1rem;
+      border: 2px solid #ddd;
+      z-index: 1;
+      position: relative;
+    }
+
+    @media (max-width: 576px) {
+      .intro-card {
+        padding: 2rem 1.25rem;
+      }
+
+      .intro-card h3 {
+        font-size: 1.5rem;
+      }
+
+      .intro-card .d-flex {
+        flex-direction: column;
+        gap: 0.75rem !important;
+      }
+
+      .avatar-placeholder {
+        width: 48px;
+        height: 48px;
+        font-size: 1rem;
+      }
+    }
+  </style>
+
+  <div class="container" id="Intro-section">
+    <div class="intro-card text-center">
+      {% if request.user.is_authenticated %}
+        <div class="avatar-placeholder">{{ request.user.username|slice:":1"|upper }}</div>
+        <h3>Welcome Back!!!</h3>
+        <p>
+          Hi there 👋 <strong>{{ request.user.username }}</strong>, ready to jump back in? <br>
+          Connect with your communities or friends—your chats are waiting!
+        </p>
+        <div class="d-flex justify-content-center gap-3 mt-4">
+          <a href="{% url 'rooms:chatgroup' %}" class="btn btn-warning">Enter Rooms</a>
+        </div>
+      {% else %}
+        <h3>Real-Time Conversations Await</h3>
+        <p>
+          Join global chat rooms, collaborate with teams, or hang out with friends — all in real time. <br>
+          No noise, just connection.
+        </p>
+        <div class="d-flex justify-content-center gap-3 mt-4">
+          <a href="{% url 'core:signup' %}" class="btn btn-warning">Sign Up</a>
+          <a href="{% url 'core:login' %}" class="btn btn-danger">Log In</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

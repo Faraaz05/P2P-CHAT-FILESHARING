@@ -1,0 +1,140 @@
+{% extends 'core/base.html' %}
+{% block content %}
+  <style>
+    body {
+      {% comment %} background: linear-gradient(to right, #fdfbfb, #ebedee); {% endcomment %}
+    }
+
+    #signup-section {
+      min-height: 85vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .signup-card {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 3rem 2rem;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+      max-width: 30rem;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .signup-card h3 {
+      font-weight: 700;
+      font-size: 1.6rem;
+      color: #222;
+      text-align: center;
+    }
+
+    .signup-card h5 {
+      font-size: 0.95rem;
+      color: #777;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .signup-card label {
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 0.25rem;
+    }
+
+    .signup-card input {
+      border-radius: 0.75rem;
+      padding: 0.6rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      width: 100%;
+    }
+
+    .signup-card .btn-info {
+      width: 100%;
+      padding: 0.7rem;
+      font-weight: 600;
+      border-radius: 1.5rem;
+      background: linear-gradient(135deg, #43c6ac, #f8ffae);
+      border: none;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .signup-card .btn-info:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .signup-card .form_errors {
+      margin-top: 1rem;
+    }
+
+    .signup-card small {
+      display: block;
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .signup-card a.link-info {
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .signup-card a.link-info:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 576px) {
+      .signup-card {
+        padding: 2rem 1.25rem;
+      }
+    }
+  </style>
+
+  <div class="container" id="signup-section">
+    <div class="signup-card">
+      <div class="mb-4">
+        <h5>Create an Account</h5>
+        <h3>Sign up to Chat App</h3>
+      </div>
+
+      <form method="post" action="."> {% csrf_token %}
+        <div class="mb-3">
+          <label for="id_username" class="form-label">Username</label>
+          {{ form.username }}
+        </div>
+
+        <div class="mb-3">
+          <label for="id_password1" class="form-label">Password</label>
+          {{ form.password1 }}
+        </div>
+
+        <div class="mb-3">
+          <label for="id_password2" class="form-label">Confirm Password</label>
+          {{ form.password2 }}
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" class="btn btn-info">Sign Up</button>
+        </div>
+
+        <small>
+          Already have an account?
+          <a href="{% url 'core:login' %}" class="link-info">Sign in</a>
+        </small>
+
+        {% if form.errors %}
+          {% for field in form %}
+            {% for error in field.errors %}
+              <div class="form_errors alert alert-danger my-2">
+                <p>{{ error|escape }}</p>
+              </div>
+            {% endfor %}
+          {% endfor %}
+        {% endif %}
+      </form>
+    </div>
+  </div>
+{% endblock %}
