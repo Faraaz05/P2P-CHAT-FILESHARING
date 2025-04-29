@@ -13,6 +13,36 @@ class Profile(models.Model):
     birth_date = models.DateField(blank=True, null=True)
     picture = models.ImageField(default='profile_pics/default_pic.png', upload_to='profile_pics/', blank=True) 
     
+    # Add language preference field with popular Indian languages
+    LANGUAGE_CHOICES = [
+        ('en', 'English'),
+        ('hi', 'Hindi'),
+        ('gu', 'Gujarati'),
+        ('bn', 'Bengali'),
+        ('ta', 'Tamil'),
+        ('te', 'Telugu'),
+        ('mr', 'Marathi'),
+        ('kn', 'Kannada'),
+        ('ml', 'Malayalam'),
+        ('pa', 'Punjabi'),
+        ('or', 'Odia'),
+        ('ur', 'Urdu'),
+        ('as', 'Assamese'),
+        ('es', 'Spanish'),
+        ('fr', 'French'),
+        ('de', 'German'),
+        ('zh-cn', 'Chinese'),
+        ('ja', 'Japanese'),
+        ('ru', 'Russian'),
+    ]
+    
+    preferred_language = models.CharField(
+        max_length=10, 
+        choices=LANGUAGE_CHOICES,
+        default='en',
+        verbose_name="Preferred Language"
+    )
+    
     def __str__(self):
         return self.user.username
     
@@ -20,11 +50,12 @@ class Profile(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         
-        pic = Image.open(self.picture.path)
-        if pic.height > 400 or pic.width > 400:
-            output_size = (400, 400)
-            pic.thumbnail(output_size)
-            pic.save(self.picture.path)
+        if self.picture and hasattr(self.picture, 'path') and self.picture.path:
+            pic = Image.open(self.picture.path)
+            if pic.height > 400 or pic.width > 400:
+                output_size = (400, 400)
+                pic.thumbnail(output_size)
+                pic.save(self.picture.path)
             
             
 # Signals to create/save profile when User is created/updated

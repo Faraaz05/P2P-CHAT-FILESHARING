@@ -151,4 +151,3 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 message_obj.save()
                 
         return message_obj
-        

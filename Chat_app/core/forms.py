@@ -53,14 +53,17 @@ class UserUpdateForm(forms.ModelForm):
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['birth_date', 'picture']
+        fields = ['birth_date', 'picture', 'preferred_language']
         widgets = {
             "birth_date": forms.DateInput(attrs={
-            "class": "form-control",
-            "type": "date"
+                "class": "form-control",
+                "type": "date"
             }),
             "picture": forms.FileInput(attrs={
-            "class": "form-control"
+                "class": "form-control"
+            }),
+            "preferred_language": forms.Select(attrs={
+                "class": "form-control"
             })
         }
       
@@ -73,4 +76,3 @@ class LoginForm(AuthenticationForm):
         "placeholder": "Enter your Password",
         "class": "form-control"
     }))
-        

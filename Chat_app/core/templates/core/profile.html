@@ -100,7 +100,22 @@
                             </div>
                         </div>
                     </div>
-                    
+                    <div class="detail-card">
+                        <div class="detail-icon language-icon">
+                            <i class="bi bi-translate"></i>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-label">Preferred Language</div>
+                            <div class="detail-value">
+                                {% if user.profile.preferred_language %}
+                                    {{ user.profile.get_preferred_language_display }}
+                                {% else %}
+                                    <span class="text-muted">English (Default)</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
                     {% if user == request.user %}
                     <div class="profile-actions-mobile">
                         <a href="{% url 'core:update_profile' %}" class="edit-profile-btn-mobile">
@@ -406,6 +421,9 @@
     .profile-image-container {
         width: 120px;
         height: 120px;
+    }
+    .language-icon {
+        background: linear-gradient(135deg, #4338ca, #6d28d9);
     }
 }
 </style>
