@@ -36,7 +36,12 @@ def chatgroup(request):
 @login_required
 def chat(request, slug):
     room = get_object_or_404(Room, slug=slug)
-    messages = ChatMessage.objects.filter(room=room)[0:25]
+    # Get the 25 most recent messages, ordered by date
+    messages = ChatMessage.objects.filter(room=room).order_by('-date_added')[:25]
+
+    # Reverse the order to display oldest first (chronological order for chat)
+    messages = list(messages)  # Convert QuerySet to list for reversing
+    messages.reverse()
     
     # Get user's preferred language
     user_language = request.user.profile.preferred_language
@@ -64,7 +69,6 @@ def chat(request, slug):
             msg.is_translated = False
         
         translated_messages.append(msg)
-    
     return render(request, 'rooms/chat.html', {
         "room": room,
         "messages": translated_messages,
