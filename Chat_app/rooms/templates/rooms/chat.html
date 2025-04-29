@@ -33,74 +33,70 @@
                     </button>
                 </div>
             </div>
-            
+            <div class="translation-controls">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="translation-toggle" checked>
+                    <label class="form-check-label" for="translation-toggle">Auto-translate messages</label>
+                </div>
+                <div class="translation-status">
+                    Your language: {{ user.profile.get_preferred_language_display }}
+                </div>
+            </div>
             <!-- Chat Messages Area -->
             <div class="chat-body" id="chat-messages">
                 <!-- Chat Messages Container -->
-                <div class="message-box">
-                    {% for message in messages %}
-                        <div class="message-wrapper {% if message.user == request.user %}outgoing{% else %}incoming{% endif %}">
-                            {% if message.user != request.user %}
-                            <div class="message-avatar">
-                                <img src="{{ message.user.profile.picture.url }}" alt="{{ message.user.username }}">
+                <!-- Replace your existing message structure with this: -->
+<div class="message-box">
+    {% for message in messages %}
+    <div class="message-wrapper {% if message.user.username == request.user.username %}outgoing{% else %}incoming{% endif %}">
+        <div class="message-avatar">
+            <img src="{{ message.user.profile.picture.url }}" alt="{{ message.user.username }}">
+        </div>
+        <div class="message-bubble-wrapper">
+            <div class="message-bubble {% if message.user.username == request.user.username %}outgoing{% else %}incoming{% endif %}">
+                <div class="message-sender">{{ message.user.username }}</div>
+                
+                {% if message.message_type == 'text' %}
+                    <div class="message-content">
+                        {% if message.is_translated %}
+                            <div class="translated-content">{{ message.translated_content }}</div>
+                            <span class="message-translated-indicator" onclick="toggleOriginal(this)">Translated</span>
+                            <div class="original-message">
+                                Original ({{ message.source_language }}): {{ message.content }}
                             </div>
-                            {% endif %}
-                            
-                            <div class="message-bubble-wrapper">
-                                <div class="message-bubble {% if message.user == request.user %}outgoing{% else %}incoming{% endif %}">
-                                    {% if message.user != request.user %}
-                                    <div class="message-sender">
-                                        {{ message.user.username }}
-                                    </div>
-                                    {% endif %}
-                                    
-                                    {% if message.message_type == 'image'%}
-                                        <div class="message-image">
-                                            <img src="{{ message.file.url }}" alt="{{ message.file }}" class="img-fluid">
-                                        </div>
-                                    {% elif message.message_type == 'file'%}
-                                        <div class="file-attachment">
-                                            <div class="file-icon">
-                                                <i class="bi bi-file-earmark-text-fill"></i>
-                                            </div>
-                                            <div class="file-details">
-                                                <div class="file-name">{{ message.file }}</div>
-                                                <a href="{{ message.file.url }}" target="_blank" download class="file-download">
-                                                    <span>Download</span>
-                                                    <i class="bi bi-download"></i>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    {% else %}
-                                        <div class="message-content">{{ message.content }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="message-info">
-                                    <span class="message-time">{{ message.date_added|time:"g:i A" }}</span>
-                                    {% if message.user == request.user %}
-                                        <span class="message-status">
-                                            <i class="bi bi-check2-all"></i>
-                                        </span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            {% if message.user == request.user %}
-                            <div class="message-avatar">
-                                <img src="{{ message.user.profile.picture.url }}" alt="{{ message.user.username }}">
-                            </div>
-                            {% endif %}
+                        {% else %}
+                            {{ message.content }}
+                        {% endif %}
+                    </div>
+                {% elif message.message_type == 'image' %}
+                    <div class="message-image">
+                        <img src="{{ message.file.url }}" alt="Image">
+                    </div>
+                {% elif message.message_type == 'file' %}
+                    <div class="file-attachment">
+                        <div class="file-icon">
+                            <i class="bi bi-file-earmark"></i>
                         </div>
-                    {% empty %}
-                        <div class="empty-chat">
-                            <div class="empty-chat-illustration">
-                                <i class="bi bi-chat-square-text"></i>
-                            </div>
-                            <h4>No messages yet</h4>
-                            <p>Start the conversation with your first message!</p>
+                        <div class="file-details">
+                            <div class="file-name">{{ message.filename }}</div>
+                            <a href="{{ message.file.url }}" download class="file-download">
+                                <i class="bi bi-download"></i> Download
+                            </a>
                         </div>
-                    {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <div class="message-info">
+                    <span class="message-time">{{ message.date_added|date:"H:i" }}</span>
+                    {% if message.user.username == request.user.username %}
+                        <span class="message-status"><i class="bi bi-check2-all"></i></span>
+                    {% endif %}
                 </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
             </div>
             
             <!-- Message Input Area -->
@@ -404,6 +400,45 @@
 
 .message-bubble.outgoing .message-status {
     color: white;
+}
+
+/*TRANSLATION STYLES */
+
+/* Translation Styles */
+.message-translated-indicator {
+    font-size: 11px;
+    background-color: rgba(0, 149, 246, 0.1);
+    color: #0095f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.original-message {
+    display: none;
+    font-style: italic;
+    color: #737373;
+    margin-top: 4px;
+    padding: 4px 8px;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+}
+
+.translation-controls {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: rgba(0, 149, 246, 0.05);
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.translation-status {
+    font-size: 13px;
+    color: #737373;
+    margin-left: auto;
 }
 
 /* Image Message Styles */
@@ -743,13 +778,68 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+
+
 {% endblock %}
 
 {% block scripts %}
-
 {{ room.slug|json_script:"json-roomname" }}
 {{ request.user.username|json_script:"json-username" }}
 
-<script src="{% static 'rooms/js/chat.js' %}"></script>
+<script>
+// Toggle function for showing/hiding original message
+function toggleOriginal(element) {
+    const originalMessage = element.nextElementSibling;
+    if (originalMessage.style.display === 'block') {
+        originalMessage.style.display = 'none';
+        element.textContent = 'Translated';
+    } else {
+        originalMessage.style.display = 'block';
+        element.textContent = 'Hide Original';
+    }
+}
 
+// Initialize translation toggle state from localStorage
+document.addEventListener('DOMContentLoaded', function() {
+    const translationToggle = document.getElementById('translation-toggle');
+    
+    // Set initial toggle state from localStorage
+    if (localStorage.getItem('auto_translate') === 'false') {
+        translationToggle.checked = false;
+        
+        // Show original messages, hide translated content
+        document.querySelectorAll('.translated-content').forEach(el => {
+            if (el.parentNode.querySelector('.original-message')) {
+                el.style.display = 'none';
+                el.parentNode.querySelector('.message-translated-indicator').style.display = 'none';
+                el.parentNode.querySelector('.original-message').style.display = 'block';
+            }
+        });
+    }
+    
+    // Add event listener to update UI when toggle changes
+    translationToggle.addEventListener('change', function() {
+        localStorage.setItem('auto_translate', this.checked);
+        
+        // Update existing messages based on toggle state
+        const translatedContents = document.querySelectorAll('.translated-content');
+        const translatedIndicators = document.querySelectorAll('.message-translated-indicator');
+        const originalMessages = document.querySelectorAll('.original-message');
+        
+        if (this.checked) {
+            // Show translated content, hide originals
+            translatedContents.forEach(el => el.style.display = 'block');
+            translatedIndicators.forEach(el => el.style.display = 'inline-block');
+            originalMessages.forEach(el => el.style.display = 'none');
+        } else {
+            // Show original messages, hide translated content
+            translatedContents.forEach(el => el.style.display = 'none');
+            translatedIndicators.forEach(el => el.style.display = 'none');
+            originalMessages.forEach(el => el.style.display = 'block');
+        }
+    });
+});
+</script>
+
+<script src="{% static 'rooms/js/chat.js' %}"></script>
 {% endblock %}

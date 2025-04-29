@@ -31,6 +31,9 @@ class ChatMessage(models.Model):
     file = models.FileField(upload_to='chat_files/', null=True, blank=True)
     message_type = models.CharField(max_length=10, choices=MESSAGE_TYPE, default='text')
     
+    # Add source language field
+    source_language = models.CharField(max_length=10, default='en')
+    
     class Meta:
         ordering = ('date_added',)
         

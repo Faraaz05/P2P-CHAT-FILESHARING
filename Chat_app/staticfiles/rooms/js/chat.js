@@ -9,6 +9,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatMessages = document.getElementById('chat-messages');
     const imageUpload = document.getElementById('image-upload');
     const fileUpload = document.getElementById('file-upload');
+    const translationToggle = document.getElementById('translation-toggle');
+
+    // Set translation preference from localStorage
+    if (localStorage.getItem('auto_translate') === 'false') {
+        translationToggle.checked = false;
+    }
+    
+    // Store translation preference when changed
+    translationToggle.addEventListener('change', function() {
+        localStorage.setItem('auto_translate', this.checked);
+    });
 
     // WebSocket connection setup
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -102,44 +113,148 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessageInput.value = '';
         imageUpload.value = '';
         fileUpload.value = '';
+        
+        // Hide file preview if shown
+        const filePreviewContainer = document.getElementById('file-preview-container');
+        if (filePreviewContainer) {
+            filePreviewContainer.classList.add('d-none');
+        }
     }
 
-    // Display message to chat window
+    // Display message to chat window with translation support
     function displayMessageOnFrontend(data) {
         const messageBox = document.querySelector('.message-box');
         const messageDiv = document.createElement('div');
-
-        // Determine if the message is from the current user
-        const isCurrentUser = data.username === username;
-        if (isCurrentUser) {
-            messageDiv.classList.add('flex-row-reverse');
-        }
-        messageDiv.classList.add('d-flex', 'mb-3');
-
-        let messageContent = '';
-
-        // Message HTML template
-        if (data.message_type === 'image' && data.file_url) {
-            messageContent = `<img src="${data.file_url}" class="img-fluid rounded my-2" alt="${data.filename}" width="300" height="300">`;
-        } else if (data.message_type === 'file' && data.file_url) {
-            messageContent = `<a href="${data.file_url}" download><i class="bi bi-file-earmark-arrow-down-fill h1 text-warning"></i> ${data.filename}</a>`;
+        
+        // Determine message direction
+        messageDiv.classList.add('message');
+        if (data.username === username) {
+            messageDiv.classList.add('sent');
         } else {
-            messageContent = `<p>${data.message}</p>`;
+            messageDiv.classList.add('received');
         }
+        
+        // Create message avatar
+        const avatarDiv = document.createElement('div');
+        avatarDiv.classList.add('message-avatar');
+        const avatarImg = document.createElement('img');
+        avatarImg.src = data.picture;
+        avatarImg.alt = data.username;
+        avatarDiv.appendChild(avatarImg);
+        messageDiv.appendChild(avatarDiv);
+        
+        // Create message content container
+        const contentDiv = document.createElement('div');
+        contentDiv.classList.add('message-content');
+        
+        // Create message info
+        const infoDiv = document.createElement('div');
+        infoDiv.classList.add('message-info');
+        
+        const usernameDiv = document.createElement('div');
+        usernameDiv.classList.add('message-username');
+        usernameDiv.textContent = data.username;
+        infoDiv.appendChild(usernameDiv);
+        
+        const timeDiv = document.createElement('div');
+        timeDiv.classList.add('message-time');
+        const now = new Date();
+        timeDiv.textContent = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+        infoDiv.appendChild(timeDiv);
+        
+        contentDiv.appendChild(infoDiv);
 
-        messageDiv.innerHTML = `
-            <img src="${data.picture}" class="rounded-circle" alt="${data.username}" width="40" height="40">
-            <div class="${isCurrentUser ? 'bg-success me-2' : 'bg-dark ms-2'} d-flex flex-column align-items-start text-white rounded p-2">
-                <strong>${isCurrentUser ? 'You' : data.username}</strong>
-                ${messageContent}
-                <small style="lavender">${data.timestamp ? new Date(data.timestamp).toLocaleString() : new Date().toLocaleString()}</small>
-            </div>
-        `;
-
+        // Handle different message types
+        if (data.message_type === 'text') {
+            const textDiv = document.createElement('div');
+            textDiv.classList.add('message-text');
+            
+            // Show translated or original based on user preference
+            const shouldTranslate = translationToggle.checked;
+            textDiv.textContent = data.message;
+            
+            // If message is translated and auto-translate is enabled
+            if (data.translated && shouldTranslate) {
+                // Add translation indicator
+                const translatedSpan = document.createElement('span');
+                translatedSpan.classList.add('message-translated-indicator');
+                translatedSpan.textContent = 'Translated';
+                translatedSpan.onclick = function() { toggleOriginal(this); };
+                textDiv.appendChild(translatedSpan);
+                
+                // Add original message in hidden div
+                const originalDiv = document.createElement('div');
+                originalDiv.classList.add('original-message');
+                originalDiv.textContent = `Original: ${data.original_message}`;
+                textDiv.appendChild(originalDiv);
+            }
+            
+            contentDiv.appendChild(textDiv);
+        } else if (data.message_type === 'image') {
+            const imageDiv = document.createElement('div');
+            imageDiv.classList.add('message-image');
+            const img = document.createElement('img');
+            img.src = data.file_url;
+            img.alt = 'Image';
+            imageDiv.appendChild(img);
+            contentDiv.appendChild(imageDiv);
+        } else if (data.message_type === 'file') {
+            const fileDiv = document.createElement('div');
+            fileDiv.classList.add('message-file');
+            const fileLink = document.createElement('a');
+            fileLink.href = data.file_url;
+            fileLink.download = data.filename || getFilenameFromUrl(data.file_url);
+            
+            const fileIcon = document.createElement('i');
+            fileIcon.classList.add('bi', 'bi-file-earmark');
+            fileLink.appendChild(fileIcon);
+            
+            const fileName = document.createTextNode(' ' + (data.filename || getFilenameFromUrl(data.file_url)));
+            fileLink.appendChild(fileName);
+            
+            fileDiv.appendChild(fileLink);
+            contentDiv.appendChild(fileDiv);
+        }
+        
+        messageDiv.appendChild(contentDiv);
+        
+        // Add the new message to the chat
         messageBox.appendChild(messageDiv);
-
+        
         // Scroll to bottom of messages
         chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Helper function to toggle original message display
+    window.toggleOriginal = function(element) {
+        const originalMessage = element.nextElementSibling;
+        if (originalMessage.style.display === 'block') {
+            originalMessage.style.display = 'none';
+            element.textContent = 'Translated';
+        } else {
+            originalMessage.style.display = 'block';
+            element.textContent = 'Hide Original';
+        }
+    };
+
+    // Helper function to extract filename from URL
+    function getFilenameFromUrl(url) {
+        if (!url) return "File";
+        return url.split('/').pop();
+    }
+
+    function handleTranslationStatus(element, success) {
+        const indicator = element.querySelector('.message-translated-indicator');
+        
+        if (indicator) {
+            if (!success) {
+                indicator.textContent = 'Translation unavailable';
+                indicator.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                indicator.style.color = '#ef4444';
+                indicator.style.cursor = 'default';
+                indicator.onclick = null;
+            }
+        }
     }
 
     // Activate Submit event
@@ -148,10 +263,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add a change event listener to both image and file upload inputs to preview the selected file
     [imageUpload, fileUpload].forEach(input => {
+        if (!input) return;
+        
         input.addEventListener('change', function () {
             if (this.files.length > 0) {
                 const fileType = this.id === 'image-upload' ? 'Image' : 'File';
-                chatMessageInput.value = `Uploading: ${this.files[0].name} (${fileType})`;
+                
+                if (this.id === 'image-upload') {
+                    // Show image preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imagePreview = document.getElementById('image-preview');
+                        if (imagePreview) {
+                            imagePreview.src = e.target.result;
+                            document.getElementById('file-preview-container').classList.remove('d-none');
+                        }
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                } else {
+                    // Just show the filename for non-image files
+                    chatMessageInput.value = `${this.files[0].name}`;
+                }
             }
         });
     });
